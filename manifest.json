@@ -2,7 +2,7 @@
   "name": "HVAC Altitude WC Calculator",
   "short_name": "WC Calc",
   "description": "Calculate altitude-derated water column pressure for HVAC applications",
-  "start_url": "/index.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0a0e1a",
