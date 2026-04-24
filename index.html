@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="WC Calc">
+  <meta name="theme-color" content="#0a0e1a">
+  <link rel="manifest" href="manifest.json">
+  <title>WC Calc</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:        #0a0e1a;
+      --panel:     #111827;
+      --border:    #1e2d40;
+      --cyan:      #00e5ff;
+      --amber:     #ffb300;
+      --red:       #ff3d5a;
+      --muted:     #4a6070;
+      --text:      #c9d8e8;
+      --mono:      'Share Tech Mono', monospace;
+      --sans:      'Barlow Condensed', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0;
+      overflow-x: hidden;
+    }
+
+    /* Subtle scanline overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.05) 2px,
+        rgba(0,0,0,0.05) 4px
+      );
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    /* ── Header ── */
+    header {
+      width: 100%;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-icon {
+      width: 36px; height: 36px;
+      flex-shrink: 0;
+    }
+
+    .header-title {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header-title span:first-child {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      color: var(--cyan);
+      font-weight: 300;
+      text-transform: uppercase;
+    }
+
+    .header-title span:last-child {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #fff;
+      line-height: 1.1;
+    }
+
+    .header-badge {
+      margin-left: auto;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      text-align: right;
+    }
+
+    /* ── Main ── */
+    main {
+      width: 100%;
+      max-width: 440px;
+      padding: 20px 16px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* ── GPS Status bar ── */
+    .gps-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+
+    .gps-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+      flex-shrink: 0;
+      transition: background 0.4s;
+    }
+    .gps-dot.active { background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
+    .gps-dot.error  { background: var(--red); }
+
+    #gpsStatus { color: var(--muted); flex: 1; }
+
+    /* ── Input fields ── */
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .field-label {
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+      padding-left: 2px;
+    }
+
+    .field-row {
+      display: flex;
+      align-items: center;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+
+    .field-row:focus-within {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 2px rgba(0,229,255,0.08);
+    }
+
+    .field-unit {
+      padding: 0 12px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      border-left: 1px solid var(--border);
+      height: 100%;
+      display: flex;
+      align-items: center;
+      background: rgba(0,0,0,0.2);
+      user-select: none;
+    }
+
+    input[type="number"] {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      padding: 14px 14px;
+      font-family: var(--mono);
+      font-size: 20px;
+      color: #fff;
+      width: 100%;
+      -moz-appearance: textfield;
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    /* ── Divider ── */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── Calculate button ── */
+    button#calcBtn {
+      width: 100%;
+      padding: 16px;
+      background: var(--cyan);
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      font-family: var(--sans);
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.15s, transform 0.1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button#calcBtn:active {
+      background: #00b8cc;
+      transform: scale(0.98);
+    }
+
+    /* ── Result panel ── */
+    .result-panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      display: none;
+      animation: slideIn 0.25s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-panel.visible { display: block; }
+
+    .result-header {
+      padding: 10px 16px;
+      background: rgba(0,0,0,0.3);
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .result-main {
+      padding: 20px 16px 16px;
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+    }
+
+    .result-value {
+      font-family: var(--mono);
+      font-size: 52px;
+      font-weight: 400;
+      line-height: 1;
+      color: var(--amber);
+      text-shadow: 0 0 20px rgba(255,179,0,0.35);
+      letter-spacing: -1px;
+    }
+
+    .result-unit {
+      font-family: var(--mono);
+      font-size: 16px;
+      color: var(--muted);
+      padding-bottom: 8px;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-top: 1px solid var(--border);
+    }
+
+    .result-stat {
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .result-stat:first-child {
+      border-right: 1px solid var(--border);
+    }
+
+    .result-stat-label {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .result-stat-value {
+      font-family: var(--mono);
+      font-size: 15px;
+      color: var(--text);
+    }
+
+    /* ── Formula note ── */
+    .formula-note {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      padding: 10px 16px;
+      background: rgba(0,0,0,0.2);
+      border-top: 1px solid var(--border);
+      letter-spacing: 0.03em;
+    }
+
+    /* ── Footer ── */
+    footer {
+      margin-top: auto;
+      padding: 12px;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <svg class="header-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="18" cy="16" r="9" stroke="#00e5ff" stroke-width="1.6"/>
+      <line x1="18" y1="25" x2="18" y2="33" stroke="#00e5ff" stroke-width="1.6" stroke-linecap="round"/>
+      <line x1="12" y1="16" x2="17" y2="16" stroke="#00e5ff" stroke-width="1.6" stroke-linecap="round"/>
+      <circle cx="18" cy="16" r="2" fill="#00e5ff"/>
+      <line x1="18" y1="7" x2="18" y2="9" stroke="#00e5ff" stroke-width="1.4" stroke-linecap="round"/>
+      <line x1="11.5" y1="9.5" x2="12.9" y2="10.9" stroke="#00e5ff" stroke-width="1.4" stroke-linecap="round"/>
+      <line x1="24.5" y1="9.5" x2="23.1" y2="10.9" stroke="#00e5ff" stroke-width="1.4" stroke-linecap="round"/>
+    </svg>
+    <div class="header-title">
+      <span>HVAC Field Tool</span>
+      <span>Altitude WC Calc</span>
+    </div>
+    <div class="header-badge">4% / 1K ft<br>DERATE</div>
+  </header>
+
+  <main>
+
+    <!-- GPS Status -->
+    <div class="gps-bar">
+      <div class="gps-dot" id="gpsDot"></div>
+      <span id="gpsStatus">Requesting GPS altitude…</span>
+    </div>
+
+    <!-- Max WC Input -->
+    <div class="field-group">
+      <div class="field-label">Rated Max WC</div>
+      <div class="field-row">
+        <input type="number" id="maxWC" value="3.8" step="0.1" inputmode="decimal">
+        <div class="field-unit">in. WC</div>
+      </div>
+    </div>
+
+    <!-- Altitude Input -->
+    <div class="field-group">
+      <div class="field-label">Altitude</div>
+      <div class="field-row">
+        <input type="number" id="altitude" placeholder="—" step="1" inputmode="numeric">
+        <div class="field-unit">ft ASL</div>
+      </div>
+    </div>
+
+    <div class="divider">result</div>
+
+    <!-- Button -->
+    <button id="calcBtn" onclick="calculateWC()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M3 8h10M9 4l4 4-4 4" stroke="#000" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Calculate Actual WC
+    </button>
+
+    <!-- Result -->
+    <div class="result-panel" id="resultPanel">
+      <div class="result-header">Altitude-Derated Output</div>
+      <div class="result-main">
+        <div class="result-value" id="actualWC">—</div>
+        <div class="result-unit">in. WC</div>
+      </div>
+      <div class="result-grid">
+        <div class="result-stat">
+          <div class="result-stat-label">Derate Factor</div>
+          <div class="result-stat-value" id="deratePct">—</div>
+        </div>
+        <div class="result-stat">
+          <div class="result-stat-label">Loss</div>
+          <div class="result-stat-value" id="lossWC">—</div>
+        </div>
+      </div>
+      <div class="formula-note" id="formulaNote"></div>
+    </div>
+
+  </main>
+
+  <footer>DERATE: 4% PER 1,000 FT ASL</footer>
+
+  <script>
+    // ── Service Worker ──
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+
+    // ── GPS ──
+    window.addEventListener('load', () => {
+      const dot    = document.getElementById('gpsDot');
+      const status = document.getElementById('gpsStatus');
+
+      if (!navigator.geolocation) {
+        dot.classList.add('error');
+        status.textContent = 'GPS unavailable — enter altitude manually';
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          if (pos.coords.altitude !== null) {
+            const ft = Math.round(pos.coords.altitude * 3.28084);
+            document.getElementById('altitude').value = ft;
+            dot.classList.add('active');
+            status.textContent = `GPS fix — ${ft.toLocaleString()} ft ASL`;
+          } else {
+            dot.classList.add('error');
+            status.textContent = 'GPS has no altitude — enter manually';
+          }
+        },
+        () => {
+          dot.classList.add('error');
+          status.textContent = 'Location denied — enter altitude manually';
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    });
+
+    // ── Calculate ──
+    function calculateWC() {
+      const maxWC = parseFloat(document.getElementById('maxWC').value);
+      const alt   = parseFloat(document.getElementById('altitude').value);
+
+      if (isNaN(maxWC) || isNaN(alt)) {
+        alert('Please enter both a Rated Max WC and an Altitude.');
+        return;
+      }
+
+      const derateFraction = 0.04 * (alt / 1000);
+      const actualWC       = maxWC * (1 - derateFraction);
+      const loss           = maxWC - actualWC;
+      const pct            = (derateFraction * 100).toFixed(1);
+
+      document.getElementById('actualWC').textContent  = actualWC.toFixed(2);
+      document.getElementById('deratePct').textContent = `−${pct}%`;
+      document.getElementById('lossWC').textContent    = `−${loss.toFixed(3)} in.`;
+      document.getElementById('formulaNote').textContent =
+        `${maxWC.toFixed(2)} × (1 − 0.04 × ${(alt/1000).toFixed(3)}) = ${actualWC.toFixed(3)}`;
+
+      const panel = document.getElementById('resultPanel');
+      panel.classList.remove('visible');
+      void panel.offsetWidth; // force reflow for re-animation
+      panel.classList.add('visible');
+    }
+  </script>
+</body>
+</html>
