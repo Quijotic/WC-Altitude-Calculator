@@ -264,6 +264,28 @@
       color: #cc0000;
       font-weight: 700;
     }
+
+    .cfm-suggestions {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #555;
+      text-align: left;
+    }
+
+    .cfm-suggestions strong {
+      display: block;
+      margin-bottom: 3px;
+      color: #333;
+    }
+
+    .cfm-suggestions ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .cfm-suggestions li {
+      margin-bottom: 1px;
+    }
   </style>
 </head>
 <body>
@@ -318,6 +340,7 @@
         <div class="cfm-value" id="cfmValue">—</div>
         <div class="cfm-unit">CFM</div>
         <div class="cfm-note" id="cfmNote"></div>
+        <div class="cfm-suggestions" id="cfmSuggestions"></div>
       </div>
     </div>
   </div>
@@ -682,6 +705,27 @@
           document.getElementById('cfmNote').textContent      = rangeNote;
           cfmBlock.classList.toggle('out-of-range', !inRange);
           cfmBlock.classList.add('visible');
+
+          // Suggest compatible fans when out of range
+          const suggestionsEl = document.getElementById('cfmSuggestions');
+          if (!inRange) {
+            const compatible = FAN_MODELS.filter(f => {
+              if (f.id === fan.id) return false;
+              const pts = Object.keys(f.curve).map(Number).sort((a, b) => a - b);
+              return actualWC >= pts[0] && actualWC <= pts[pts.length - 1];
+            });
+            if (compatible.length > 0) {
+              suggestionsEl.innerHTML =
+                `<strong>Fans that cover ${actualWC.toFixed(2)}" WC:</strong><ul>` +
+                compatible.map(f => `<li>${f.name}</li>`).join('') +
+                `</ul>`;
+            } else {
+              suggestionsEl.innerHTML =
+                `<strong>No other configured fans cover ${actualWC.toFixed(2)}" WC.</strong>`;
+            }
+          } else {
+            suggestionsEl.innerHTML = '';
+          }
         }
       } else {
         cfmBlock.classList.remove('visible');
