@@ -9,356 +9,267 @@
   <meta name="theme-color" content="#0a0e1a">
   <link rel="manifest" href="manifest.json">
   <title>WC Calc</title>
-  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;600;700&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg:        #0a0e1a;
-      --panel:     #111827;
-      --border:    #1e2d40;
-      --cyan:      #00e5ff;
-      --amber:     #ffb300;
-      --red:       #ff3d5a;
-      --muted:     #4a6070;
-      --text:      #c9d8e8;
-      --mono:      'Share Tech Mono', monospace;
-      --sans:      'Barlow Condensed', sans-serif;
-    }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: var(--sans);
-      background: var(--bg);
-      color: var(--text);
+      font-family: sans-serif;
+      font-size: 17px;
+      background: #e8f0fe;
       min-height: 100dvh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 0;
-      overflow-x: hidden;
+      padding: 24px 16px 32px;
     }
 
-    /* Subtle scanline overlay */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(0,0,0,0.05) 2px,
-        rgba(0,0,0,0.05) 4px
-      );
-      pointer-events: none;
-      z-index: 10;
-    }
-
-    /* ── Header ── */
-    header {
+    /* ── Card ── */
+    .card {
+      background: white;
+      padding: 24px 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
       width: 100%;
-      background: var(--panel);
-      border-bottom: 1px solid var(--border);
-      padding: 14px 20px 12px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
+      max-width: 420px;
     }
 
-    .header-icon {
-      width: 36px; height: 36px;
-      flex-shrink: 0;
-    }
-
-    .header-title {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .header-title span:first-child {
-      font-size: 11px;
-      letter-spacing: 0.18em;
-      color: var(--cyan);
-      font-weight: 300;
-      text-transform: uppercase;
-    }
-
-    .header-title span:last-child {
-      font-size: 20px;
+    h2 {
+      font-size: 22px;
       font-weight: 700;
-      letter-spacing: 0.04em;
-      color: #fff;
-      line-height: 1.1;
+      color: #1a3a6b;
+      margin-bottom: 18px;
     }
 
-    .header-badge {
-      margin-left: auto;
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--muted);
-      text-align: right;
-    }
-
-    /* ── Main ── */
-    main {
-      width: 100%;
-      max-width: 440px;
-      padding: 20px 16px 32px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    /* ── GPS Status bar ── */
+    /* ── GPS bar ── */
     .gps-bar {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 10px 14px;
-      background: var(--panel);
-      border: 1px solid var(--border);
+      padding: 10px 12px;
+      background: #f0f4ff;
+      border: 1px solid #c5d5f5;
       border-radius: 6px;
-      font-family: var(--mono);
-      font-size: 12px;
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 16px;
     }
 
     .gps-dot {
-      width: 8px; height: 8px;
+      width: 9px; height: 9px;
       border-radius: 50%;
-      background: var(--muted);
+      background: #aaa;
       flex-shrink: 0;
       transition: background 0.4s;
     }
-    .gps-dot.active { background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
-    .gps-dot.error  { background: var(--red); }
+    .gps-dot.active { background: #007bff; box-shadow: 0 0 5px #007bff88; }
+    .gps-dot.error  { background: #dc3545; }
 
-    #gpsStatus { color: var(--muted); flex: 1; }
-
-    /* ── Input fields ── */
-    .field-group {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .field-label {
-      font-size: 11px;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--muted);
+    /* ── Labels & inputs ── */
+    label {
+      display: block;
+      font-size: 15px;
       font-weight: 600;
-      padding-left: 2px;
-    }
-
-    .field-row {
-      display: flex;
-      align-items: center;
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      overflow: hidden;
-      transition: border-color 0.2s;
-    }
-
-    .field-row:focus-within {
-      border-color: var(--cyan);
-      box-shadow: 0 0 0 2px rgba(0,229,255,0.08);
-    }
-
-    .field-unit {
-      padding: 0 12px;
-      font-family: var(--mono);
-      font-size: 12px;
-      color: var(--muted);
-      border-left: 1px solid var(--border);
-      height: 100%;
-      display: flex;
-      align-items: center;
-      background: rgba(0,0,0,0.2);
-      user-select: none;
+      color: #333;
+      margin-bottom: 5px;
+      margin-top: 14px;
     }
 
     input[type="number"] {
-      flex: 1;
-      background: transparent;
-      border: none;
-      outline: none;
-      padding: 14px 14px;
-      font-family: var(--mono);
-      font-size: 20px;
-      color: #fff;
       width: 100%;
+      padding: 12px 14px;
+      font-size: 18px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
       -moz-appearance: textfield;
     }
     input[type="number"]::-webkit-inner-spin-button,
     input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+    input[type="number"]:focus {
+      border-color: #007bff;
+      box-shadow: 0 0 0 3px rgba(0,123,255,0.15);
+    }
 
-    /* ── Divider ── */
-    .divider {
+    /* ── Checkbox row ── */
+    .checkbox-row {
       display: flex;
       align-items: center;
       gap: 10px;
-      color: var(--muted);
-      font-size: 11px;
-      letter-spacing: 0.1em;
-    }
-    .divider::before, .divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border);
+      margin-top: 18px;
+      cursor: pointer;
     }
 
-    /* ── Calculate button ── */
-    button#calcBtn {
+    .checkbox-row input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      accent-color: #007bff;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .checkbox-row span {
+      font-size: 15px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    /* ── Fan model dropdown section ── */
+    .fan-section {
+      display: none;
+      margin-top: 14px;
+    }
+    .fan-section.visible { display: block; }
+
+    select {
       width: 100%;
-      padding: 16px;
-      background: var(--cyan);
-      color: #000;
+      padding: 12px 14px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      outline: none;
+      background: white;
+      color: #222;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+    }
+    select:focus {
+      border-color: #007bff;
+      box-shadow: 0 0 0 3px rgba(0,123,255,0.15);
+    }
+
+    /* ── Button ── */
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 20px;
+      background: #007bff;
+      color: white;
       border: none;
       border-radius: 6px;
-      font-family: var(--sans);
-      font-size: 15px;
-      font-weight: 700;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
+      font-size: 17px;
+      font-weight: 600;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
       transition: background 0.15s, transform 0.1s;
       -webkit-tap-highlight-color: transparent;
     }
-
-    button#calcBtn:active {
-      background: #00b8cc;
+    button:active {
+      background: #0056b3;
       transform: scale(0.98);
     }
 
-    /* ── Result panel ── */
-    .result-panel {
-      background: var(--panel);
-      border: 1px solid var(--border);
+    /* ── Result ── */
+    .result {
+      margin-top: 20px;
+      padding: 18px;
+      background: #e8f0fe;
       border-radius: 6px;
-      overflow: hidden;
+      text-align: center;
       display: none;
-      animation: slideIn 0.25s ease;
+      animation: popIn 0.2s ease;
     }
 
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to   { opacity: 1; transform: translateY(0); }
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.97); }
+      to   { opacity: 1; transform: scale(1); }
     }
 
-    .result-panel.visible { display: block; }
+    .result.visible { display: block; }
 
-    .result-header {
-      padding: 10px 16px;
-      background: rgba(0,0,0,0.3);
-      border-bottom: 1px solid var(--border);
-      font-size: 11px;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-
-    .result-main {
-      padding: 20px 16px 16px;
-      display: flex;
-      align-items: flex-end;
-      gap: 6px;
+    .result-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 4px;
     }
 
     .result-value {
-      font-family: var(--mono);
-      font-size: 52px;
-      font-weight: 400;
-      line-height: 1;
-      color: var(--amber);
-      text-shadow: 0 0 20px rgba(255,179,0,0.35);
-      letter-spacing: -1px;
+      font-size: 42px;
+      font-weight: 700;
+      color: #111;
+      line-height: 1.1;
     }
 
     .result-unit {
-      font-family: var(--mono);
       font-size: 16px;
-      color: var(--muted);
-      padding-bottom: 8px;
+      color: #444;
+      margin-top: 2px;
     }
 
-    .result-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      border-top: 1px solid var(--border);
-    }
-
-    .result-stat {
-      padding: 12px 16px;
+    .result-sub {
+      margin-top: 12px;
       display: flex;
-      flex-direction: column;
-      gap: 3px;
+      justify-content: center;
+      gap: 24px;
+      font-size: 14px;
+      color: #555;
+      border-top: 1px solid rgba(0,0,0,0.1);
+      padding-top: 10px;
     }
 
-    .result-stat:first-child {
-      border-right: 1px solid var(--border);
-    }
+    .result-sub span { font-weight: 600; color: #222; }
 
-    .result-stat-label {
-      font-size: 10px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-
-    .result-stat-value {
-      font-family: var(--mono);
-      font-size: 15px;
-      color: var(--text);
-    }
-
-    /* ── Formula note ── */
     .formula-note {
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--muted);
-      padding: 10px 16px;
-      background: rgba(0,0,0,0.2);
-      border-top: 1px solid var(--border);
-      letter-spacing: 0.03em;
+      margin-top: 8px;
+      font-size: 12px;
+      color: #777;
     }
 
-    /* ── Footer ── */
-    footer {
-      margin-top: auto;
-      padding: 12px;
-      font-size: 11px;
-      color: var(--muted);
-      letter-spacing: 0.1em;
-      text-align: center;
+    /* ── CFM result block ── */
+    .cfm-block {
+      display: none;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(0,0,0,0.12);
+    }
+    .cfm-block.visible { display: block; }
+
+    .cfm-model-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 4px;
+    }
+
+    .cfm-value {
+      font-size: 36px;
+      font-weight: 700;
+      color: #1a3a6b;
+      line-height: 1.1;
+    }
+
+    .cfm-unit {
+      font-size: 15px;
+      color: #555;
+      margin-top: 2px;
+    }
+
+    .cfm-note {
+      font-size: 12px;
+      color: #777;
+      margin-top: 6px;
+    }
+
+    /* Out-of-range warning state */
+    .cfm-block.out-of-range .cfm-model-name,
+    .cfm-block.out-of-range .cfm-label,
+    .cfm-block.out-of-range .cfm-value,
+    .cfm-block.out-of-range .cfm-unit {
+      color: #cc0000;
+    }
+    .cfm-block.out-of-range .cfm-note {
+      color: #cc0000;
+      font-weight: 700;
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <svg class="header-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="18" cy="16" r="9" stroke="#00e5ff" stroke-width="1.6"/>
-      <line x1="18" y1="25" x2="18" y2="33" stroke="#00e5ff" stroke-width="1.6" stroke-linecap="round"/>
-      <line x1="12" y1="16" x2="17" y2="16" stroke="#00e5ff" stroke-width="1.6" stroke-linecap="round"/>
-      <circle cx="18" cy="16" r="2" fill="#00e5ff"/>
-      <line x1="18" y1="7" x2="18" y2="9" stroke="#00e5ff" stroke-width="1.4" stroke-linecap="round"/>
-      <line x1="11.5" y1="9.5" x2="12.9" y2="10.9" stroke="#00e5ff" stroke-width="1.4" stroke-linecap="round"/>
-      <line x1="24.5" y1="9.5" x2="23.1" y2="10.9" stroke="#00e5ff" stroke-width="1.4" stroke-linecap="round"/>
-    </svg>
-    <div class="header-title">
-      <span>HVAC Field Tool</span>
-      <span>Altitude WC Calc</span>
-    </div>
-    <div class="header-badge">4% / 1K ft<br>DERATE</div>
-  </header>
-
-  <main>
+  <div class="card">
+    <h2>Altitude WC Calc</h2>
 
     <!-- GPS Status -->
     <div class="gps-bar">
@@ -367,61 +278,335 @@
     </div>
 
     <!-- Max WC Input -->
-    <div class="field-group">
-      <div class="field-label">Rated Max WC</div>
-      <div class="field-row">
-        <input type="number" id="maxWC" value="3.8" step="0.1" inputmode="decimal">
-        <div class="field-unit">in. WC</div>
-      </div>
-    </div>
+    <label for="maxWC">Recommended Max WC:</label>
+    <input type="number" id="maxWC" value="3.8" step="0.1" inputmode="decimal">
 
     <!-- Altitude Input -->
-    <div class="field-group">
-      <div class="field-label">Altitude</div>
-      <div class="field-row">
-        <input type="number" id="altitude" placeholder="—" step="1" inputmode="numeric">
-        <div class="field-unit">ft ASL</div>
-      </div>
-    </div>
+    <label for="altitude">Altitude (Feet):</label>
+    <input type="number" id="altitude" placeholder="Fetching GPS…" step="1" inputmode="numeric">
 
-    <div class="divider">result</div>
+    <!-- CFM Checkbox -->
+    <label class="checkbox-row" for="cfmToggle">
+      <input type="checkbox" id="cfmToggle" onchange="toggleCFM()">
+      <span>Include Typical CFM</span>
+    </label>
+
+    <!-- Fan Model Dropdown (hidden until checkbox checked) -->
+    <div class="fan-section" id="fanSection">
+      <label for="fanSelect">Fan Model:</label>
+      <select id="fanSelect"></select>
+    </div>
 
     <!-- Button -->
-    <button id="calcBtn" onclick="calculateWC()">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <path d="M3 8h10M9 4l4 4-4 4" stroke="#000" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      Calculate Actual WC
-    </button>
+    <button onclick="calculateWC()">Calculate Actual WC</button>
 
     <!-- Result -->
-    <div class="result-panel" id="resultPanel">
-      <div class="result-header">Altitude-Derated Output</div>
-      <div class="result-main">
-        <div class="result-value" id="actualWC">—</div>
-        <div class="result-unit">in. WC</div>
-      </div>
-      <div class="result-grid">
-        <div class="result-stat">
-          <div class="result-stat-label">Derate Factor</div>
-          <div class="result-stat-value" id="deratePct">—</div>
-        </div>
-        <div class="result-stat">
-          <div class="result-stat-label">Loss</div>
-          <div class="result-stat-value" id="lossWC">—</div>
-        </div>
+    <div class="result" id="resultPanel">
+      <div class="result-label">Actual WC</div>
+      <div class="result-value" id="actualWC">—</div>
+      <div class="result-unit">inches WC</div>
+      <div class="result-sub">
+        <div>Derate: <span id="deratePct">—</span></div>
+        <div>Loss: <span id="lossWC">—</span></div>
       </div>
       <div class="formula-note" id="formulaNote"></div>
+
+      <!-- CFM result (shown only when checkbox active) -->
+      <div class="cfm-block" id="cfmBlock">
+        <div class="cfm-model-name" id="cfmModelName"></div>
+        <div class="cfm-label result-label">Typical CFM</div>
+        <div class="cfm-value" id="cfmValue">—</div>
+        <div class="cfm-unit">CFM</div>
+        <div class="cfm-note" id="cfmNote"></div>
+      </div>
     </div>
-
-  </main>
-
-  <footer>DERATE: 4% PER 1,000 FT ASL</footer>
+  </div>
 
   <script>
     // ── Service Worker ──
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+
+    // ════════════════════════════════════════════════════════
+    // FAN MODEL DATA
+    // ════════════════════════════════════════════════════════
+    // To add a new fan model, copy one of the objects below
+    // and fill in the name and CFM values at each WC point.
+    //
+    // curve: maps WC (inches) → typical CFM at that static pressure.
+    // WC keys can be any values; interpolation handles in-between.
+    // ════════════════════════════════════════════════════════
+    const FAN_MODELS = [
+      {
+        id: "RP140",
+        name: "RP140",
+        curve: {
+          0.0: 138,
+          0.2: 110,
+          0.5: 66,
+        }
+      },
+	  {
+        id: "RP145",
+        name: "RP145",
+        curve: {
+          0.0: 169,
+          0.2: 150,
+          0.5: 124,
+		  1.0: 81,
+		  1.5: 42,
+		  2.0: 4,
+        }
+      },
+	  {
+        id: "RP260",
+        name: "RP260",
+        curve: {
+          0.0: 251,
+          0.2: 210,
+          0.5: 157,
+		  1.0: 70,
+		  1.5: 42,
+		  2.0: 4,
+        }
+      },
+	  {
+        id: "RP265",
+        name: "RP265",
+        curve: {
+          0.0: 375,
+          0.2: 340,
+          0.5: 282,
+		  1.0: 204,
+		  1.5: 140,
+		  2.0: 70,
+        }
+      },
+	  {
+        id: "RP380",
+        name: "RP380",
+        curve: {
+          0.0: 541,
+          0.2: 510,
+          0.5: 461,
+		  1.0: 347,
+		  1.5: 235,
+		  2.0: 107,
+        }
+      },
+	  {
+        id: "XP151",
+        name: "XP151",
+        curve: {
+          0.0: 167,
+          0.2: 151,
+          0.5: 127,
+		  1.0: 77,
+        }
+      },
+	  {
+        id: "XP201",
+        name: "XP201",
+        curve: {
+          0.0: 126,
+          0.2: 115,
+          0.5: 98,
+		  1.0: 66,
+		  1.5: 26,
+        }
+      },
+	  {
+        id: "XP261",
+        name: "XP261",
+        curve: {
+          0.0: 217,
+          0.2: 190,
+          0.5: 149,
+		  1.0: 87,
+		  1.5: 27,
+        }
+      },
+	  {
+        id: "LV175",
+        name: "LV175",
+        curve: {
+          0.0: 216,
+          0.2: 200,
+          0.5: 176,
+		  1.0: 135,
+		  1.5: 90,
+        }
+      },
+	  {
+        id: "GX3",
+        name: "GX3",
+        curve: {
+		  1.0: 96,
+		  1.5: 86,
+		  2.0: 72,
+		  2.5: 57,
+		  3.0: 40,
+        }
+      },
+	  {
+        id: "GX4",
+        name: "GX4",
+        curve: {
+		  2.5: 84,
+		  3.0: 74,
+		  3.5: 63,
+		  4.0: 53,
+		  4.5: 41,
+        }
+      },
+	  {
+        id: "GX5",
+        name: "GX5",
+        curve: {
+		  2.5: 98,
+		  3.0: 93,
+		  3.5: 76,
+		  4.0: 65,
+		  4.5: 54,
+		  5.0: 31,
+        }
+      },
+	  {
+        id: "GX5A",
+        name: "GX5A",
+        curve: {
+          0.0: 178,
+          0.2: 173,
+          0.5: 167,
+		  1.0: 153,
+		  1.5: 137,
+		  2.0: 123,
+		  2.5: 109,
+		  3.0: 96,
+		  3.5: 83,
+		  4.0: 53,
+		  4.5: 34,
+		  5.0: 6,
+        }
+      },
+	  {
+        id: "GP301c",
+        name: "GP301c",
+        curve: {
+		  1.0: 64,
+		  1.5: 54,
+		  2.0: 41,
+		  2.5: 4,
+        }
+      },
+	  {
+        id: "GP501c",
+        name: "GP501c",
+        curve: {
+		  2.0: 66,
+		  2.5: 58,
+		  3.0: 50,
+		  3.5: 27,
+        }
+      },
+	  {
+        id: "SF180",
+        name: "SF180",
+        curve: {
+          0.0: 149,
+          0.2: 140,
+          0.5: 127,
+		  1.0: 96,
+		  1.5: 61,
+        }
+      },
+	  {
+        id: "GP500",
+        name: "GP500",
+        curve: {
+		  2.0: 51,
+		  2.5: 45,
+		  3.0: 35,
+		  3.5: 18,
+        }
+      },
+	  {
+        id: "EC6",
+        name: "EC6",
+        curve: {
+          0.0: 514,
+          0.2: 490,
+          0.5: 451,
+		  1.0: 381,
+		  1.5: 330,
+		  2.0: 271,
+		  2.5: 211,
+		  3.0: 152,
+		  3.5: 101,
+		  4.0: 49,
+        }
+      },
+      {
+        id: "EX_Fan",
+        name: "Example Fan",
+        curve: {
+          0.0: 514,
+          0.2: 490,
+          0.5: 451,
+		  1.0: 381,
+		  1.5: 330,
+		  2.0: 271,
+		  2.5: 211,
+		  3.0: 152,
+		  3.5: 101,
+		  4.0: 49,
+		  4.5: 0,
+		  5.0: 0,
+        }
+      },
+      // ── Add more fan models here ──
+    ];
+
+    // ── Populate dropdown on load ──
+    (function buildDropdown() {
+      const select = document.getElementById('fanSelect');
+      FAN_MODELS.forEach(fan => {
+        const opt = document.createElement('option');
+        opt.value = fan.id;
+        opt.textContent = fan.name;
+        select.appendChild(opt);
+      });
+    })();
+
+    // ── Toggle fan section visibility ──
+    function toggleCFM() {
+      const checked = document.getElementById('cfmToggle').checked;
+      document.getElementById('fanSection').classList.toggle('visible', checked);
+      // Hide CFM block in result if unchecked
+      if (!checked) document.getElementById('cfmBlock').classList.remove('visible');
+    }
+
+    // ── Linear interpolation between WC curve points ──
+    function interpolateCFM(curve, wc) {
+      const points = Object.keys(curve)
+        .map(Number)
+        .sort((a, b) => a - b);
+
+      // Below lowest point
+      if (wc <= points[0]) return curve[points[0]];
+      // Above highest point
+      if (wc >= points[points.length - 1]) return curve[points[points.length - 1]];
+
+      // Find surrounding points and interpolate
+      for (let i = 0; i < points.length - 1; i++) {
+        const lo = points[i];
+        const hi = points[i + 1];
+        if (wc >= lo && wc <= hi) {
+          const t = (wc - lo) / (hi - lo);
+          return curve[lo] + t * (curve[hi] - curve[lo]);
+        }
+      }
     }
 
     // ── GPS ──
@@ -476,9 +661,35 @@
       document.getElementById('formulaNote').textContent =
         `${maxWC.toFixed(2)} × (1 − 0.04 × ${(alt/1000).toFixed(3)}) = ${actualWC.toFixed(3)}`;
 
+      // ── CFM lookup ──
+      const cfmEnabled = document.getElementById('cfmToggle').checked;
+      const cfmBlock   = document.getElementById('cfmBlock');
+
+      if (cfmEnabled) {
+        const selectedId = document.getElementById('fanSelect').value;
+        const fan = FAN_MODELS.find(f => f.id === selectedId);
+
+        if (fan) {
+          const cfm = interpolateCFM(fan.curve, actualWC);
+          const curvePoints = Object.keys(fan.curve).map(Number).sort((a,b) => a-b);
+          const inRange = actualWC >= curvePoints[0] && actualWC <= curvePoints[curvePoints.length - 1];
+          const rangeNote = inRange
+            ? `Interpolated at ${actualWC.toFixed(2)}" WC`
+            : `Extrapolated — ${actualWC.toFixed(2)}" WC is outside data range`;
+
+          document.getElementById('cfmModelName').textContent = fan.name;
+          document.getElementById('cfmValue').textContent     = Math.round(cfm).toLocaleString();
+          document.getElementById('cfmNote').textContent      = rangeNote;
+          cfmBlock.classList.toggle('out-of-range', !inRange);
+          cfmBlock.classList.add('visible');
+        }
+      } else {
+        cfmBlock.classList.remove('visible');
+      }
+
       const panel = document.getElementById('resultPanel');
       panel.classList.remove('visible');
-      void panel.offsetWidth; // force reflow for re-animation
+      void panel.offsetWidth;
       panel.classList.add('visible');
     }
   </script>
